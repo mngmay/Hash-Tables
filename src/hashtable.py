@@ -19,6 +19,8 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
+        self.original_capacity = capacity
+        self.keys = 0
 
     def _hash(self, key):
         '''
@@ -66,9 +68,13 @@ class HashTable:
                 current = current.next
             else:
                 current.next = LinkedPair(key, value)
+                self.keys += 1
+                self.resize()
                 return
 
         self.storage[index] = LinkedPair(key, value)
+        self.keys += 1
+        self.resize()
 
     def remove(self, key):
         '''
@@ -83,6 +89,8 @@ class HashTable:
 
         if current.key == key:
             self.storage[index] = current.next
+            self.keys -= 1
+            self.resize()
             return
 
         while current:
@@ -90,6 +98,8 @@ class HashTable:
             current = current.next
             if current.key == key:
                 prev.next = current.next
+                self.keys -= 1
+                self.resize()
             return
 
         print("Key was not found")
@@ -114,6 +124,11 @@ class HashTable:
         else:
             return None
 
+    def get_load_factor(self):
+
+        load_factor = self.keys / self.capacity
+        return load_factor
+
     def resize(self):
         '''
         Doubles the capacity of the hash table and
@@ -121,16 +136,36 @@ class HashTable:
 
         Fill this in.
         '''
-        self.capacity *= 2
-        old_storage = self.storage
-        self.storage = [None] * self.capacity
+        load_factor = self.get_load_factor()
 
-        for item in old_storage:
-            while item:
-                # using insert method takes care of hashing
-                self.insert(item.key, item.value)
-                item = item.next
-        return
+        # if load factor past 0.7
+        if load_factor > 0.7:
+            print("> 0.7", load_factor)
+            self.capacity *= 2
+            old_storage = self.storage
+            self.storage = [None] * self.capacity
+
+            for item in old_storage:
+                while item:
+                    # using insert method takes care of hashing
+                    self.insert(item.key, item.value)
+                    item = item.next
+            print("storage length", len(self.storage), "keys", self.keys)
+
+        elif load_factor < 0.2 and (self.original_capacity < self.capacity):
+            print("< 0.2", load_factor)
+            self.capacity //= 2
+            old_storage = self.storage
+            self.storage = [None] * self.capacity
+
+            for item in old_storage:
+                while item:
+                    self.insert(item.key, item.value)
+                    item = item.next
+            print("storage length", len(self.storage), "keys", self.keys)
+
+        else:
+            print("No need to resize", load_factor)
 
 
 if __name__ == "__main__":
@@ -149,7 +184,6 @@ if __name__ == "__main__":
 
     # Test resizing
     old_capacity = len(ht.storage)
-    ht.resize()
     new_capacity = len(ht.storage)
 
     print(f"\nResized from {old_capacity} to {new_capacity}.\n")
