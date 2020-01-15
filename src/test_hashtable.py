@@ -170,6 +170,26 @@ class TestHashTable(unittest.TestCase):
 
         self.assertTrue(len(ht.storage) == 16)
 
+        ht.remove("key-3")
+        ht.remove("key-4")
+        ht.remove("key-5")
+        ht.remove("key-6")
+        ht.remove("key-7")
+        ht.remove("key-8")
+        ht.remove("key-9")
+
+        self.assertTrue(len(ht.storage) == 8)
+
+        ht.insert("key-3", "val-3")
+        ht.insert("key-4", "val-4")
+        ht.insert("key-5", "val-5")
+        ht.insert("key-6", "val-6")
+        ht.insert("key-7", "val-7")
+        ht.insert("key-8", "val-8")
+        ht.insert("key-9", "val-9")
+
+        self.assertTrue(len(ht.storage) == 16)
+
         return_value = ht.retrieve("key-0")
         self.assertTrue(return_value == "val-0")
         return_value = ht.retrieve("key-1")

@@ -151,8 +151,10 @@ class HashTable:
             self._transfer_storage()
 
         elif load_factor < 0.2 and resized:
+            print("resized", load_factor, len(self.storage))
             self.capacity //= 2
             self._transfer_storage()
+            print("resized after", len(self.storage))
 
 
 if __name__ == "__main__":
