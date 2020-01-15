@@ -60,19 +60,19 @@ class HashTable:
         index = self._hash_mod(key)
         current = self.storage[index]
 
-        while current:
-            if current.key == key:
-                current.value = value
-                return
-            elif current.next:
-                current = current.next
-            else:
-                current.next = LinkedPair(key, value)
-                self.keys += 1
-                self.resize()
-                return
+        if current is None:
+            self.storage[index] = LinkedPair(key, value)
 
-        self.storage[index] = LinkedPair(key, value)
+        else:
+            while current:
+                if current.key == key:
+                    current.value = value
+                    return
+                elif current.next:
+                    current = current.next
+                else:
+                    current.next = LinkedPair(key, value)
+
         self.keys += 1
         self.resize()
         return
@@ -125,10 +125,16 @@ class HashTable:
         else:
             return None
 
-    def get_load_factor(self):
+    def _transfer_storage(self):
+        old_storage = self.storage
+        self.storage = [None] * self.capacity
 
-        load_factor = self.keys / self.capacity
-        return load_factor
+        for item in old_storage:
+            while item:
+                    # using insert method takes care of hashing
+                self.insert(item.key, item.value)
+                self.keys -= 1  # remove double counting from transfer insert
+                item = item.next
 
     def resize(self):
         '''
@@ -137,40 +143,16 @@ class HashTable:
 
         Fill this in.
         '''
-        load_factor = self.get_load_factor()
-        keys = self.keys
+        load_factor = self.keys / self.capacity
+        resized = self.capacity > self.original_capacity
 
-        # if load factor past 0.7
         if load_factor > 0.7:
-            print(load_factor)
-            print("capacity", self.capacity, "before")
             self.capacity *= 2
-            old_storage = self.storage
-            self.storage = [None] * self.capacity
-            print("capacity", self.capacity, "after")
+            self._transfer_storage()
 
-            for item in old_storage:
-                while item:
-                    # using insert method takes care of hashing
-                    self.insert(item.key, item.value)
-                    item = item.next
-            self.keys = keys
-            print("keys", keys, "storage", len(self.storage))
-
-        elif load_factor < 0.2:
-            print(load_factor)
-            print("capacity", self.capacity, "before")
+        elif load_factor < 0.2 and resized:
             self.capacity //= 2
-            old_storage = self.storage
-            self.storage = [None] * self.capacity
-            print("capacity", self.capacity, "after")
-
-            for item in old_storage:
-                while item:
-                    self.insert(item.key, item.value)
-                    item = item.next
-            self.keys = keys
-            print("keys", keys, "storage", len(self.storage))
+            self._transfer_storage()
 
 
 if __name__ == "__main__":

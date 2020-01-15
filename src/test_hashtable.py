@@ -154,6 +154,7 @@ class TestHashTable(unittest.TestCase):
         self.assertTrue(return_value is None)
 
     def test_hash_table_resize(self):
+        print("------RESIZE TEST-------")
         ht = HashTable(8)
 
         ht.insert("key-0", "val-0")
