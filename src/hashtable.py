@@ -75,6 +75,7 @@ class HashTable:
         self.storage[index] = LinkedPair(key, value)
         self.keys += 1
         self.resize()
+        return
 
     def remove(self, key):
         '''
@@ -137,35 +138,39 @@ class HashTable:
         Fill this in.
         '''
         load_factor = self.get_load_factor()
+        keys = self.keys
 
         # if load factor past 0.7
         if load_factor > 0.7:
-            print("> 0.7", load_factor)
+            print(load_factor)
+            print("capacity", self.capacity, "before")
             self.capacity *= 2
             old_storage = self.storage
             self.storage = [None] * self.capacity
+            print("capacity", self.capacity, "after")
 
             for item in old_storage:
                 while item:
                     # using insert method takes care of hashing
                     self.insert(item.key, item.value)
                     item = item.next
-            print("storage length", len(self.storage), "keys", self.keys)
+            self.keys = keys
+            print("keys", keys, "storage", len(self.storage))
 
-        elif load_factor < 0.2 and (self.original_capacity < self.capacity):
-            print("< 0.2", load_factor)
+        elif load_factor < 0.2:
+            print(load_factor)
+            print("capacity", self.capacity, "before")
             self.capacity //= 2
             old_storage = self.storage
             self.storage = [None] * self.capacity
+            print("capacity", self.capacity, "after")
 
             for item in old_storage:
                 while item:
                     self.insert(item.key, item.value)
                     item = item.next
-            print("storage length", len(self.storage), "keys", self.keys)
-
-        else:
-            print("No need to resize", load_factor)
+            self.keys = keys
+            print("keys", keys, "storage", len(self.storage))
 
 
 if __name__ == "__main__":
