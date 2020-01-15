@@ -1,21 +1,26 @@
 # '''
 # Linked List hash table key/value pair
 # '''
+
+
 class LinkedPair:
     def __init__(self, key, value):
         self.key = key
         self.value = value
         self.next = None
 
+
 class HashTable:
     '''
     A hash table that with `capacity` buckets
     that accepts string keys
     '''
+
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
-
+        self.original_capacity = capacity
+        self.keys = 0
 
     def _hash(self, key):
         '''
@@ -25,23 +30,23 @@ class HashTable:
         '''
         return hash(key)
 
-
     def _hash_djb2(self, key):
         '''
         Hash an arbitrary key using DJB2 hash
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
-
+        hash = 5381
+        for c in key:
+            hash = (hash * 33) + ord(c)
+        return hash
 
     def _hash_mod(self, key):
         '''
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
-        return self._hash(key) % self.capacity
-
+        return self._hash_djb2(key) % self.capacity
 
     def insert(self, key, value):
         '''
@@ -51,9 +56,26 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        # hash the key to get an index
+        index = self._hash_mod(key)
+        current = self.storage[index]
 
+        if current is None:
+            self.storage[index] = LinkedPair(key, value)
 
+        else:
+            while current:
+                if current.key == key:
+                    current.value = value
+                    return
+                elif current.next:
+                    current = current.next
+                else:
+                    current.next = LinkedPair(key, value)
+
+        self.keys += 1
+        self.resize()
+        return
 
     def remove(self, key):
         '''
@@ -63,8 +85,25 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current = self.storage[index]
 
+        if current.key == key:
+            self.storage[index] = current.next
+            self.keys -= 1
+            self.resize()
+            return
+
+        while current:
+            prev = current
+            current = current.next
+            if current.key == key:
+                prev.next = current.next
+                self.keys -= 1
+                self.resize()
+            return
+
+        print("Key was not found")
 
     def retrieve(self, key):
         '''
@@ -74,8 +113,28 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current = self.storage[index]
 
+        if current:
+            while current:
+                if current.key == key:
+                    return current.value
+                else:
+                    current = current.next
+        else:
+            return None
+
+    def _transfer_storage(self):
+        old_storage = self.storage
+        self.storage = [None] * self.capacity
+
+        for item in old_storage:
+            while item:
+                    # using insert method takes care of hashing
+                self.insert(item.key, item.value)
+                self.keys -= 1  # remove double counting from transfer insert
+                item = item.next
 
     def resize(self):
         '''
@@ -84,8 +143,18 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        load_factor = self.keys / self.capacity
+        resized = self.capacity > self.original_capacity
 
+        if load_factor > 0.7:
+            self.capacity *= 2
+            self._transfer_storage()
+
+        elif load_factor < 0.2 and resized:
+            print("resized", load_factor, len(self.storage))
+            self.capacity //= 2
+            self._transfer_storage()
+            print("resized after", len(self.storage))
 
 
 if __name__ == "__main__":
@@ -104,7 +173,6 @@ if __name__ == "__main__":
 
     # Test resizing
     old_capacity = len(ht.storage)
-    ht.resize()
     new_capacity = len(ht.storage)
 
     print(f"\nResized from {old_capacity} to {new_capacity}.\n")
